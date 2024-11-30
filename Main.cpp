@@ -9,7 +9,7 @@ const char* vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
 "void main()\n"
 "{\n"
-"	gl_Position = vec4(aPos.x, aPos.y, aPosz, 1.0);\n"
+"	gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
 "}\0";
 const char* fragmentShaderSource = "#version 330 core\n"
 "out vec4 FragColor;\n"
@@ -36,8 +36,8 @@ int main() {
 	// https://www.khronos.org/opengl/wiki/OpenGL_Type visit this site to know more about OpenGL data types
 	GLfloat vertices[] =
 	{
-		 0.5f, 0.5f * float(sqrt(3)) / 3, 0.0f,	// Left corner
-		 0.4f, 0.5f * float(sqrt(3)) / 3, 0.0f,	// Right corner
+		 -0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f,	// Left corner
+		 0.2f, -0.5f * float(sqrt(3)) / 3, 0.0f,	// Right corner
 		 0.0f, 0.5f * float(sqrt(3)) * 2 / 3, 0.0f // Top corner
 	};
 	// All OpenGL objects are accessed by a reference
@@ -86,11 +86,30 @@ int main() {
 
 
 
-	GLuint VBO;
+	GLuint VAO, VBO;
 
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glGenVertexArrays(1, &VAO);	//VAO should be mentioned before VBO, the chronology is very important
+	glGenBuffers(1, &VBO);	//args: no. of objects i.e., 1 here, reference
+	// Types of buffer: https://www.khronos.org/opengl/wiki/Buffer_Object
 
+	glBindVertexArray(VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);	//args: type of buffer we want to use, reference
+
+	// Now lets actually store the vertices in the VBO
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);	// args: type of buffer, total size of the data in bytes, actual data, use of the data(static: means it will created once and used many times, dynamic: means the vertices will modified multiple times
+	// DRAW, READ, COPY where Draw: means that the vertices will be modified and be used to draw an image on the screen
+	// OpenGL does'nt know where to find the vertices, to do that we make use of another object i.e., vertex array object(VAO): THIS SOURCE POINTERS TO ONE OR MORE VBO's and tells opengl how to interpret them
+
+	// Now find the VAO and configure so that opengl knows how to find and read VBO
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);	// args: position of the vertex attribute, how many values we have per vertex i.e., we have 3 floats, the value we have, integer value?: no so GL_FALSE, stride of the other vertices i.e., the amt of data btw each vertex, offset
+	// In order to use the above, we have to enable
+	glEnableVertexAttribArray(0);
+	
+	// This step is not mandatory, but it's a good practise to have 
+	// We bind VAO and VBO 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 
 
 
@@ -101,11 +120,29 @@ int main() {
 	// Swap the back buffer with the front buffer
 	glfwSwapBuffers(window);
 
+
 	// Main while loop
 	while (!glfwWindowShouldClose(window)) {	// While loop used to avoid the window termination until we say it to close.
+		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		// Activate the shaderProgram
+		glUseProgram(shaderProgram);
+		// Find the VAO
+		glBindVertexArray(VAO);
+		// Draw
+		glDrawArrays(GL_TRIANGLES, 0, 3);	//args: type of primitive we want to use, starting index of vertices, amount of vertices we want to draw
+		// Lastly swap the buffer so that the image gets updated at each frame
+		glfwSwapBuffers(window);
+
 		// Take care of all GLFW events
 		glfwPollEvents();
 	}
+
+
+	// Delete all the objects we'll created so far
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
+	glDeleteProgram(shaderProgram);
 
 	glfwDestroyWindow(window); // The window will close when compiled and runned, to avoid this use while loop.
 	glfwTerminate();

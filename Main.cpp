@@ -5,12 +5,14 @@
 // Shaders scene, no need to understand yet, maybe you can simply copy paste this code in gpt to know more,
 // Basically I'm building my own shaders scene
 // * : pointer, it stores the memory address of another variable, it "points to" the location of the value in the memory	
+// Vertex Shader Source code
 const char* vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
 "void main()\n"
 "{\n"
 "	gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
 "}\0";
+// Fragment Shader Source code 
 const char* fragmentShaderSource = "#version 330 core\n"
 "out vec4 FragColor;\n"
 "void main()\n"
@@ -34,10 +36,11 @@ int main() {
 	
 	// You may think why not use normal float, but this float and GLfloat are different
 	// https://www.khronos.org/opengl/wiki/OpenGL_Type visit this site to know more about OpenGL data types
+	// Vertices coordinates
 	GLfloat vertices[] =
 	{
-		 -0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f,	// Left corner
-		 0.2f, -0.5f * float(sqrt(3)) / 3, 0.0f,	// Right corner
+		 -0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f,	// Lower Left corner
+		 0.5, -0.5f * float(sqrt(3)) / 3, 0.0f,	// Lower Right corner
 		 0.0f, 0.5f * float(sqrt(3)) * 2 / 3, 0.0f // Top corner
 	};
 	// All OpenGL objects are accessed by a reference
@@ -62,38 +65,48 @@ int main() {
 		
 
 	// Create a value aka a reference to store our vertex shader
+	// Create Vertex Shader Object and get reference
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);	//GLuint: opengl version of unsigned integer
+	//  Attach Vertex Shader source to the Vertex Shader Object
 	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);	//arg:	reference value, no. of string usage for shader, source code, NULL
 	// The GPU does not understand the source code, so we have to compile it into machine code right now
 	glCompileShader(vertexShader);
 
+
 	// Exact same thing for the Fragment shader
 	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);	//GLuint: opengl version of unsigned integer
+	// Attach Fragment Shader source to the Fragment Shader Object
 	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);	//arg:	reference value, no. of string usage for shader, source code, NULL
 	// The GPU does not understand the source code, so we have to compile it into machine code right now
 	glCompileShader(fragmentShader);
 
 	// In order to actually use these shaders, we'll have to wrap them up into shader program
+	// Create Shader Program Object and get its reference	
 	GLuint shaderProgram = glCreateProgram();
-	// Attack shaders to shaderProgram
+	// Attack the Vertex and Fragment Shaders to shaderProgram
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragmentShader);
-	// Link or wrap the shader programs
+	// Link or wrap all the shaders together into the Shader Program
 	glLinkProgram(shaderProgram);
 
-	glDeleteShader(vertexShader);
+	// Delete the shaders after linking them to shaderProgram
+	glDeleteShader(vertexShader); 
 	glDeleteShader(fragmentShader);
 
 
 
+	// Create reference containers for the Vertex Array Object and the Vertex Buffer 
 	GLuint VAO, VBO;
 
+	// Generate the VAO and VBO with only 1 object each
 	glGenVertexArrays(1, &VAO);	//VAO should be mentioned before VBO, the chronology is very important
 	glGenBuffers(1, &VBO);	//args: no. of objects i.e., 1 here, reference
 	// Types of buffer: https://www.khronos.org/opengl/wiki/Buffer_Object
 
+	// Make the VAO the current Vertex Array Object by binding it
 	glBindVertexArray(VAO);
 
+	// Bind the VBO specifying it's a GL_ARRAY_BUFFER
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);	//args: type of buffer we want to use, reference
 
 	// Now lets actually store the vertices in the VBO
@@ -125,11 +138,11 @@ int main() {
 	while (!glfwWindowShouldClose(window)) {	// While loop used to avoid the window termination until we say it to close.
 		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		// Activate the shaderProgram
+		// Activate the shaderProgram, tell OpenGL which Shader Program we want to use
 		glUseProgram(shaderProgram);
-		// Find the VAO
+		// Bind the VAO so OpenGL knows to use it
 		glBindVertexArray(VAO);
-		// Draw
+		// Draw the triangle
 		glDrawArrays(GL_TRIANGLES, 0, 3);	//args: type of primitive we want to use, starting index of vertices, amount of vertices we want to draw
 		// Lastly swap the buffer so that the image gets updated at each frame
 		glfwSwapBuffers(window);

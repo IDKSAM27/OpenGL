@@ -1,0 +1,10 @@
+All about the tech stack I'be using in this project.
+C++
+OpenGL
+GLFW
+GLAD
+VISUAL STUDIO
+
+Installation:
+
+Make sure to install Visual Studio (latest version)

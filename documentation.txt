@@ -8,3 +8,13 @@ VISUAL STUDIO
 Installation:
 
 Make sure to install Visual Studio (latest version)
+.
+.
+
+.
+.
+.
+.
+.
+
+ORGANIZING: 
